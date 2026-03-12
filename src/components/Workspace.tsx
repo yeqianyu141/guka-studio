@@ -142,21 +142,21 @@ export default function Workspace() {
   const [sliderScale, setSliderScale] = useState<number>(1.0);
 
   useEffect(() => {
-    // Fetch real stickers map from absolute URLs
-    fetch('/.stickers.json')
-      .then(res => res.text())
-      .then(text => {
-        // Simple manual parse since bash script might generate broken json
-        const matches = text.match(/"([^"]+)"/g);
-        if (matches) {
-          const list = matches.map(m => m.replace(/"/g, ''));
-          setAvailableStickers(list);
-          // Show only 8 random previews for the sticker library
-          const randomPreviews = [...list].sort(() => 0.5 - Math.random()).slice(0, 8);
-          setPreviewStickers(randomPreviews);
-        }
-      })
-      .catch(err => console.error("Could not load stickers list.", err));
+    // Read stickers using Vite's import.meta.glob to work perfectly on Vercel
+    try {
+      const stickerModules = import.meta.glob('/public/stickers/*.{png,jpg,jpeg,gif,webp}', { eager: true });
+      const list = Object.keys(stickerModules).map(path => {
+        // Remove '/public' prefix so that the URL is directly usable by the browser
+        return path.replace('/public', '');
+      });
+      
+      setAvailableStickers(list);
+      // Show only 8 random previews for the sticker library
+      const randomPreviews = [...list].sort(() => 0.5 - Math.random()).slice(0, 8);
+      setPreviewStickers(randomPreviews);
+    } catch (err) {
+      console.error("Could not load stickers via import.meta.glob", err);
+    }
   }, []);
 
   // Resize listener for responsive canvas inside the polaroid container
