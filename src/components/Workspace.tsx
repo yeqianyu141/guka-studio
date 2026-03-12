@@ -145,10 +145,7 @@ export default function Workspace() {
     // Read stickers using Vite's import.meta.glob to work perfectly on Vercel
     try {
       const stickerModules = import.meta.glob('/public/stickers/*.{png,jpg,jpeg,gif,webp}', { eager: true });
-      const list = Object.keys(stickerModules).map(path => {
-        // Remove '/public' prefix so that the URL is directly usable by the browser
-        return path.replace('/public', '');
-      });
+      const list = Object.values(stickerModules).map((mod: any) => mod.default);
       
       setAvailableStickers(list);
       // Show only 8 random previews for the sticker library
